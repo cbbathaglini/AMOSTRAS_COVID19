@@ -24,6 +24,19 @@ class PacienteRN{
         return $paciente->setNome($strNome);
     }
     
+    private function validarCadastro(Paciente $paciente,Excecao $objExcecao){
+        
+        $pacienteRN  = new PacienteRN();
+        $arr_pacientes = $pacienteRN->listar($paciente);
+        foreach ($arr_pacientes as $p){
+            if($paciente->getNome() == $p->getNome() && $paciente->getNomeMae() == $p->getNomeMae()){
+                return false;
+            }
+        }
+        return true;
+        
+    }
+    
     private function validarNomeMae(Paciente $paciente,Excecao $objExcecao){
         $strNomeMae = trim($paciente->getNomeMae());
         
@@ -46,7 +59,7 @@ class PacienteRN{
         }
         
         if($strNomeMaeObs == '' && $paciente->getNomeMae() == ''){
-            $objExcecao->adicionar_validacao('Informe o nome da mãe ou justifique a ausência.',null);
+            $objExcecao->adicionar_validacao('Informe o nome da mãe ou justifique a ausência.');
         }
         
         
@@ -54,10 +67,9 @@ class PacienteRN{
     }
     
     private function validarCPF(Paciente $paciente,Excecao $objExcecao){
-        $strCPF = trim($paciente->getCPF());
-        
+        $strCPF = trim($paciente->getCPF());     
        
-       if($paciente->getIdPerfilPaciente_fk() != 3){
+        if($paciente->getIdPerfilPaciente_fk() != 3){
             if($strCPF == ''){
                 $objExcecao->adicionar_validacao('Insira o CPF do paciente.','idCPF');
             }
@@ -131,20 +143,20 @@ class PacienteRN{
     }
     
     private function validarObsRG(Paciente $paciente,Excecao $objExcecao){
-        $strObsRG = trim($paciente->getObsCPF());
+        $strObsRG = trim($paciente->getObsRG());
        
         if (strlen($strObsRG) > 150) {
-            $objExcecao->adicionar_validacao('As observações do RG do paciente possui mais que 150 caracteres.','idObsCPF');
+            $objExcecao->adicionar_validacao('As observações do RG do paciente possui mais que 150 caracteres.','idObsRG');
         }
                            
         return $paciente->setObsRG($strObsRG);
     }
     
     private function validarObsSexo(Paciente $paciente,Excecao $objExcecao){
-        $strObsSexo = trim($paciente->getObsCPF());
+        $strObsSexo = trim($paciente->getObsSexo());
        
         if (strlen($strObsSexo) > 150) {
-            $objExcecao->adicionar_validacao('As observações do sexo do paciente possui mais que 150 caracteres.','idObsCPF');
+            $objExcecao->adicionar_validacao('As observações do sexo do paciente possui mais que 150 caracteres.','idObsSexo');
         }
                            
         return $paciente->setObsSexo($strObsSexo);
@@ -181,10 +193,13 @@ class PacienteRN{
             $this->validarObsRG($paciente,$objExcecao); 
             $this->validarObsSexo($paciente,$objExcecao); 
             $this->validarRG($paciente,$objExcecao); 
+            if($this->validarCadastro($paciente,$objExcecao)){
+                $objExcecao->lancar_validacoes();
+                $objPacienteBD = new PacienteBD();
+                //print_r($paciente);        
+                $objPacienteBD->cadastrar($paciente,$objBanco);
             
-            $objExcecao->lancar_validacoes();
-            $objPacienteBD = new PacienteBD();
-            $objPacienteBD->cadastrar($paciente,$objBanco);
+            }
             
             $objBanco->fecharConexao();
         } catch (Exception $e) {

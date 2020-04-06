@@ -71,7 +71,8 @@ class Banco {
                 throw new Exception(mysqli_error($this->conn));
             }
         }
-        //sprint_r($arrParams);
+        
+        //print_r($arrParams);
         if (mysqli_stmt_execute($stmt) === FALSE) {
             throw new Exception(mysqli_error($this->conn));
            

@@ -8,9 +8,8 @@ class PacienteBD{
     public function cadastrar(Paciente $objPaciente, Banco $objBanco) {
         try{
             //echo $objPaciente->getPaciente();
-            //die("die");
             $INSERT = 'INSERT INTO tb_paciente (idSexo_fk,idPerfilPaciente_fk,nome,nomeMae,CPF,RG,obsCPF,'
-                    . 'obsRG,obsSexo,codGAL,dataNascimento,obsNomeMae) VALUES (?,?,?,?,?,?,?,?,?,?,?)';
+                    . 'obsRG,obsSexo,codGAL,dataNascimento,obsNomeMae) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)';
 
             $arrayBind = array();
             $arrayBind[] = array('i',$objPaciente->getIdSexo_fk());
@@ -18,7 +17,7 @@ class PacienteBD{
             $arrayBind[] = array('s',$objPaciente->getNome());
             $arrayBind[] = array('s',$objPaciente->getNomeMae());
             $arrayBind[] = array('s',$objPaciente->getCPF());
-            $arrayBind[] = array('i',$objPaciente->getRG());
+            $arrayBind[] = array('s',$objPaciente->getRG());
             $arrayBind[] = array('s',$objPaciente->getObsCPF());
             $arrayBind[] = array('s',$objPaciente->getObsRG());
             $arrayBind[] = array('s',$objPaciente->getObsSexo());
@@ -26,10 +25,11 @@ class PacienteBD{
             $arrayBind[] = array('s',$objPaciente->getDataNascimento());
             $arrayBind[] = array('s',$objPaciente->getObsNomeMae());
             
-
+            
 
             $objBanco->executarSQL($INSERT,$arrayBind);
             $objPaciente->setIdPaciente($objBanco->obterUltimoID());
+           
         } catch (Exception $ex) {
             throw new Excecao("Erro cadastrando marca  no BD.",$ex);
         }

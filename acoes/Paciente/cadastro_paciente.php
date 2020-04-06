@@ -66,11 +66,12 @@ try {
                         $objExcecao->adicionar_validacao('Insira o código GAL do paciente.','idCodGAL');
                     }
                     $objPaciente->setCodGAL($_POST['idCodGAL']);
-                    
                 }
                 
-                
-                
+                if(isset($_POST['txtRG'])){
+                    $objPaciente->setRG($_POST['txtRG']);
+                }
+                                
                 $objPaciente->setIdSexo_fk($_POST['sel_sexo']);
                 if($_POST['txtObsSexo'] == null && $_POST['sel_sexo'] == null){
                     $objPaciente->setObsSexo('Não informado');
@@ -84,7 +85,8 @@ try {
                 $objPaciente->setDataNascimento($_POST['dtDataNascimento']);
                 $objPaciente->setNome($_POST['txtNome']);
                 $objPaciente->setIdPerfilPaciente_fk($_GET['valuePerfilSelected']);
-                
+                //print_r($objPaciente);
+                //echo "aqui";
                 $objPacienteRN->cadastrar($objPaciente);
                 $sucesso = '<div id="sucesso_bd" class="sucesso">Cadastrado com sucesso</div>';
             } else {
@@ -261,7 +263,7 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                 </div>
                 <div class="col-md-3 mb-3">
                     <label for="label_dtNascimento">Digite a data de nascimento:</label>
-                    <input type="date" class="form-control" id="idDtNascimetno" placeholder="Data de nascimento"  
+                    <input type="date" class="form-control" id="idDataNascimento" placeholder="Data de nascimento"  
                            onblur="validaDataNascimento()" name="dtDataNascimento"  max="<?php echo date('Y-m-d'); ?>" required value="<?= $objPaciente->getDataNascimento() ?>">
                     <div id ="feedback_dtNascimento"></div>
                 </div>
@@ -294,7 +296,7 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                                 <div class="custom-control  mb-3">
 
                                     <input style="height: 35px;margin-left: -25px;margin-top: -5px;" readonly  type="text" class="form-control" id="idObsSexo" placeholder="motivo"  
-                                           onblur="validaObsSexo()" name="txtObsSexo" required value="<?= $objPaciente->getObsNomeMae() ?>">
+                                           onblur="validaObsSexo()" name="txtObsSexo" required value="<?= $objPaciente->getObsSexo() ?>">
                                     <div id ="feedback_obsNomeMae"></div>
 
                                 </div>
@@ -312,13 +314,80 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                     <input type="text" class="form-control cep-mask" id="idCPF" placeholder="Ex.: 000.000.000-00" 
                            onblur="valida_cpf()" name="txtCPF" <?=$cpf_obrigatorio?> value="<?= $objPaciente->getCPF() ?>">
                     <div id ="feedback_cpf"></div>
+                    
+                    <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsCPF" style="margin-top:25px;" >
 
+                        <div class="form-row align-items-center" >
+                            <div class="col-auto my-1">
+                                <div class="custom-control custom-radio mb-3">
+                                    <input onclick="val_radio_obsCPF()"  name="obsCPF" value="naoInformado" type="radio"  
+                                           class="custom-control-input" id="customControlValidationCPF" name="radio-stacked4" >
+                                    <label class="custom-control-label" for="customControlValidationCPF">Não informado </label>
+                                </div>
+                            </div>
+
+                            <div class="col-auto my-1">
+                                <div class="custom-control custom-radio mb-3">
+                                    <input onchange="val_radio_obsCPF()"  name="obsCPF" value="outro" type="radio" 
+                                           class="custom-control-input" id="customControlValidationCPF2" name="radio-stacked4" >
+                                    <label class="custom-control-label" for="customControlValidationCPF2">Outro</label>
+                                </div>
+                            </div>
+
+                            <div class="col-auto my-1">
+                                <div class="custom-control  mb-3">
+
+                                    <input style="height: 35px;margin-left: -25px;margin-top: -5px;" readonly  
+                                           type="text" class="form-control" id="idObsCPF" placeholder="motivo"  
+                                           onblur="validaObsCPF()" name="txtObsCPF" required value="<?= $objPaciente->getObsCPF() ?>">
+                                    <div id ="feedback_obsCPF"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                    
                 </div>
                 <div class="col-md-4 mb-3">
                     <label for="label_rg">Digite o RG:</label>
                     <input type="txt" class="form-control" id="idRG" placeholder="RG" 
-                           onblur="##" name="txtRG" required value="<?= $objPaciente->getRG() ?>">
+                           onblur="##" name="txtRG" value="<?= $objPaciente->getRG() ?>">
                     <div id ="feedback_rg"></div>
+                    <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsRG" style="margin-top:25px;" >
+
+                        <div class="form-row align-items-center" >
+                            <div class="col-auto my-1">
+                                <div class="custom-control custom-radio mb-3">
+                                    <input onclick="val_radio_obsRG()"  name="obsRG" value="naoInformado" type="radio"  
+                                           class="custom-control-input" id="customControlValidationRG" name="radio-stacked3" >
+                                    <label class="custom-control-label" for="customControlValidationRG">Não informado </label>
+                                </div>
+                            </div>
+
+                            <div class="col-auto my-1">
+                                <div class="custom-control custom-radio mb-3">
+                                    <input onchange="val_radio_obsRG()"  name="obsRG" value="outro" type="radio" 
+                                           class="custom-control-input" id="customControlValidationRG2" name="radio-stacked3" >
+                                    <label class="custom-control-label" for="customControlValidationRG2">Outro</label>
+                                </div>
+                            </div>
+
+                            <div class="col-auto my-1">
+                                <div class="custom-control  mb-3">
+
+                                    <input style="height: 35px;margin-left: -25px;margin-top: -5px;" readonly  
+                                           type="text" class="form-control" id="idObsRG" placeholder="motivo"  
+                                           onblur="validaObsRG()" name="txtObsRG" required value="<?= $objPaciente->getObsRG() ?>">
+                                    <div id ="feedback_obsRG"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
 
                 </div>
                 <div class="col-md-4 mb-3">
@@ -355,7 +424,7 @@ function val() {
 
     });    
  }
-function val_radio_obsNomeMae() {
+                        function val_radio_obsNomeMae() {
 
                                var radios = document.getElementsByName('obs');
                                //var input_outro = document.getElementById('idObsNomeMae');
@@ -371,6 +440,52 @@ function val_radio_obsNomeMae() {
                                        // do whatever you want with the checked radio
                                        //alert("outro");
                                        document.getElementById('idObsNomeMae').readOnly = false;
+                                       // only one radio can be logically checked, don't check the rest
+                                       break;
+                                   }
+                               }
+
+                           }
+                           
+                           function val_radio_obsCPF() {
+
+                               var radios = document.getElementsByName('obsCPF');
+                               //var input_outro = document.getElementById('idObsNomeMae');
+                               for (var i = 0, length = radios.length; i < length; i++) {
+                                   if (radios[0].checked) {
+                                       // do whatever you want with the checked radio
+                                       //alert("desconhecido");
+                                       document.getElementById('idObsCPF').readOnly = true;
+                                       // only one radio can be logically checked, don't check the rest
+                                       break;
+                                   }
+                                   if (radios[1].checked) {
+                                       // do whatever you want with the checked radio
+                                       //alert("outro");
+                                       document.getElementById('idObsCPF').readOnly = false;
+                                       // only one radio can be logically checked, don't check the rest
+                                       break;
+                                   }
+                               }
+
+                           }
+                           
+                           function val_radio_obsRG() {
+
+                               var radios = document.getElementsByName('obsRG');
+                               //var input_outro = document.getElementById('idObsNomeMae');
+                               for (var i = 0, length = radios.length; i < length; i++) {
+                                   if (radios[0].checked) {
+                                       // do whatever you want with the checked radio
+                                       //alert("desconhecido");
+                                       document.getElementById('idObsRG').readOnly = true;
+                                       // only one radio can be logically checked, don't check the rest
+                                       break;
+                                   }
+                                   if (radios[1].checked) {
+                                       // do whatever you want with the checked radio
+                                       //alert("outro");
+                                       document.getElementById('idObsRG').readOnly = false;
                                        // only one radio can be logically checked, don't check the rest
                                        break;
                                    }

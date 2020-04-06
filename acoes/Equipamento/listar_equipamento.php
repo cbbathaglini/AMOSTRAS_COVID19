@@ -4,7 +4,7 @@
  */
 
 require_once 'classes/Pagina/Pagina.php';
-require_once 'classes/excecao/Excecao.php';
+require_once 'classes/Excecao/Excecao.php';
 require_once 'classes/Equipamento/Equipamento.php';
 require_once 'classes/Equipamento/EquipamentoRN.php';
 
