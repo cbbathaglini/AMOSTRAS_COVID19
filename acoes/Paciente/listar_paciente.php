@@ -4,7 +4,7 @@
  */
 
 require_once 'classes/Pagina/Pagina.php';
-require_once 'classes/excecao/Excecao.php';
+require_once 'classes/Excecao/Excecao.php';
 require_once 'classes/Detentor/Detentor.php';
 require_once 'classes/Detentor/DetentorRN.php';
 
