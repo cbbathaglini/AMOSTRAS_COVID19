@@ -1,0 +1,547 @@
+<?php
+/*
+ *  Author: Carine Bertagnolli Bathaglini
+ */
+require_once 'classes/Pagina/Pagina.php';
+require_once 'classes/excecao/Excecao.php';
+require_once 'classes/Paciente/Paciente.php';
+require_once 'classes/Paciente/PacienteRN.php';
+require_once 'classes/PerfilPaciente/PerfilPaciente.php';
+require_once 'classes/PerfilPaciente/PerfilPacienteRN.php';
+require_once 'classes/Sexo/Sexo.php';
+require_once 'classes/Sexo/SexoRN.php';
+//require_once 'classes/LugarOrigem/LugarOrigem.php';
+//require_once 'classes/LugarOrigem/LugarOrigemRN.php';
+//require_once 'classes/EstadoOrigem/EstadoOrigem.php';
+//require_once 'classes/EstadoOrigem/EstadoOrigemRN.php';
+
+$objPagina = new Pagina();
+$objPaciente = new Paciente();
+$objPacienteRN = new PacienteRN();
+$sucesso = '';
+//$select_estados = '';
+//$select_lugares = '';
+$select_sexos = '';
+$select_perfis = '';
+
+$actual_link = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+//echo $actual_link;
+$read_only = '';
+$cpf_obrigatorio = '';
+
+try {
+    /* PERFIL PACIENTE */
+    $objPerfilPaciente = new PerfilPaciente();
+    $objPerfilPacienteRN = new PerfilPacienteRN();
+
+    /* SEXO PACIENTE */
+    $objSexoPaciente = new Sexo();
+    $objSexoPacienteRN = new SexoRN();
+
+    /* LUGAR ORIGEM */
+    //$objLugarOrigem = new LugarOrigem();
+    //$objLugarOrigemRN = new LugarOrigemRN();
+    
+    /* ESTADO ORIGEM */
+    //$objEstadoOrigem = new EstadoOrigem();
+    //$objEstadoOrigemRN = new EstadoOrigemRN();
+
+    //montar_select_estadoOrigem($select_estados, $objEstadoOrigem, $objEstadoOrigemRN, $objPaciente);
+    //montar_select_lugarOrigem($select_lugares, $objLugarOrigem, $objLugarOrigemRN, $objPaciente);
+    montar_select_sexo($select_sexos, $objSexoPaciente, $objSexoPacienteRN, $objPaciente);
+    montar_select_perfilPaciente($select_perfis, $objPerfilPaciente, $objPerfilPacienteRN, $objPaciente);
+    
+
+    if (isset($_GET['valuePerfilSelected'])) {
+        $objPaciente->setIdPerfilPaciente_fk($_GET['valuePerfilSelected']);
+        montar_select_perfilPaciente($select_perfis, $objPerfilPaciente, $objPerfilPacienteRN, $objPaciente);
+        $objPerfilPaciente->setIdPerfilPaciente($_GET['valuePerfilSelected']);
+        $objPerfilPaciente = $objPerfilPacienteRN->consultar($objPerfilPaciente);
+        echo $objPerfilPaciente->getPerfil();
+        if ($objPerfilPaciente->getPerfil() != 'paciente sus') { //apenas pacientes sus tem acesso ao cod Gal
+            $read_only = ' readonly ';
+            //cpf obrigatório
+            $cpf_obrigatorio = ' required ';
+        } else {
+            $read_only = ' ';
+        }
+    }
+
+    switch ($_GET['action']) {
+        case 'cadastrar_paciente':
+            if (isset($_POST['salvar_paciente'])) {
+
+                if (isset($_POST['sel_perfil']) && $_POST['sel_perfil'] != null) {
+                    //$objPaciente->setIdPerfilPaciente_fk($_POST['sel_perfil']);
+                }
+
+                $objPaciente->setPaciente(mb_strtolower($_POST['txtPaciente'], 'utf-8'));
+                $objPacienteRN->cadastrar($objPaciente);
+                $sucesso = '<div id="sucesso_bd" class="sucesso">Cadastrado com sucesso</div>';
+            } else {
+                $objPaciente->setIdPaciente('');
+                $objPaciente->setCPF('');
+                $objPaciente->setCodGAL('');
+                $objPaciente->setDataNascimento('');
+                $objPaciente->setIdLugarOrigem_fk('');
+                $objPaciente->setIdPerfilPaciente_fk('');
+                $objPaciente->setIdSexo_fk('');
+                $objPaciente->setNome('');
+                $objPaciente->setNomeMae('');
+                $objPaciente->setObsCPF('');
+                $objPaciente->setObsRG('');
+                $objPaciente->setObsSexo('');
+                $objPaciente->setRG('');
+            }
+            break;
+
+        case 'editar_paciente':
+            if (!isset($_POST['salvar_paciente'])) { //enquanto não enviou o formulário com as alterações
+                $objPaciente->setIdPaciente($_GET['idPaciente']);
+                $objPaciente = $objPacienteRN->consultar($objPaciente);
+            }
+
+            if (isset($_POST['salvar_paciente'])) { //se enviou o formulário com as alterações
+                $objPaciente->setIdPaciente($_GET['idPaciente']);
+                $objPaciente->setPaciente(mb_strtolower($_POST['txtPaciente'], 'utf-8'));
+                $objPacienteRN->alterar($objPaciente);
+                $sucesso = '<div id="sucesso_bd" class="sucesso">Alterado com sucesso</div>';
+            }
+
+
+            break;
+        default : die('Ação [' . $_GET['action'] . '] não reconhecida pelo controlador em cadastro_paciente.php');
+    }
+} catch (Exception $ex) {
+    $objPagina->processar_excecao($ex);
+}
+
+function montar_select_estadoOrigem(&$select_estados, $objEstadoOrigem, $objEstadoOrigemRN, &$objPaciente){
+    /* ESTADO ORIGEM */
+    $selected = '';
+    $arr_estados = $objEstadoOrigemRN->listar($objEstadoOrigem);
+
+    $select_estados = '<select class="form-control selectpicker" onchange="val_estados()" id="select-country idSel_perfil" data-live-search="true" name="sel_perfil">'
+            . '<option data-tokens="" ></option>';
+
+    foreach ($arr_estados as $estado) {
+        $selected = '';
+        if ($estado->getSigla() == $objPaciente->getEstadoOrigem()) {
+            $selected = 'selected';
+        }
+        if($estado->getSigla() == 'RS' && $objPaciente->getEstadoOrigem() == null){
+            $selected = 'selected';
+        }
+
+        $select_estados .= '<option ' . $selected . '  value="' . $estado->getCod_estado()  . '" data-tokens="' . $estado->getSigla() . '">' . $estado->getSigla() . '</option>';
+    }
+    $select_estados .= '</select>';
+}
+
+function montar_select_perfilPaciente(&$select_perfis, $objPerfilPaciente, $objPerfilPacienteRN, &$objPaciente) {
+    /* PERFIL DO PACIENTE */
+    $selected = '';
+    $arr_perfis = $objPerfilPacienteRN->listar($objPerfilPaciente);
+
+    $select_perfis = '<select class="form-control selectpicker" onchange="val_perfil()" id="select-country idSel_perfil" data-live-search="true" name="sel_perfil">'
+            . '<option data-tokens="" ></option>';
+
+    foreach ($arr_perfis as $perfil) {
+        $selected = '';
+        if ($perfil->getIdPerfilPaciente() == $objPaciente->getIdPerfilPaciente_fk()) {
+            $selected = 'selected';
+        }
+        
+        
+
+        $select_perfis .= '<option ' . $selected . '  value="' . $perfil->getIdPerfilPaciente() . '" data-tokens="' . $perfil->getPerfil() . '">' . $perfil->getPerfil() . '</option>';
+    }
+    $select_perfis .= '</select>';
+}
+
+function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN, &$objPaciente) {
+    /* SEXO DO PACIENTE */
+    $selected = '';
+    $arr_sexos = $objSexoPacienteRN->listar($objSexoPaciente);
+
+    $select_sexos = '<select  onfocus="this.selectedIndex=0;" onchange="val_sexo()" class="form-control selectpicker" id="select-country idSexo" data-live-search="true" name="sel_sexo">'
+            . '<option data-tokens=""></option>';
+
+    foreach ($arr_sexos as $sexo) {
+        if ($sexo->getIdSexo() == $objPaciente->getIdSexo_fk()) {
+            $selected = 'selected';
+        }
+        $select_sexos .= '<option ' . $selected . '  value="' . $sexo->getIdSexo() . '" data-tokens="' . $sexo->getSexo() . '">' . $sexo->getSexo() . '</option>';
+    }
+    $select_sexos .= '</select>';
+}
+
+function montar_select_lugarOrigem(&$select_lugares, $objLugarOrigem, $objLugarOrigemRN, &$objPaciente) {
+    /* LUGAR DE ORIGEM */
+    $selected = '';
+    $arr_lugares = $objLugarOrigemRN->listar($objLugarOrigem);
+
+    $select_lugares = '<select class="form-control selectpicker" id="select-country modelo" data-live-search="true" name="sel_lugares">'
+            . '<option data-tokens=""></option>';
+
+    foreach ($arr_lugares as $lugar) {
+        if ($lugar->getIdLugarOrigem() == $objPaciente->getIdLugarOrigem_fk()) {
+            $selected = 'selected';
+        }
+        $select_lugares .= '<option ' . $selected . '  value="' . $lugar->getIdLugarOrigem() . '" data-tokens="' . $lugar->getNome() . '">' . $lugar->getNome() . '</option>';
+    }
+    $select_lugares .= '</select>';
+}
+?>
+
+<?php Pagina::abrir_head("Cadastrar Paciente"); ?>
+<style>
+    body,html{
+        font-size: 20px !important;
+    }
+    .dropdown-toggle{
+        border: 1px solid red;
+    }
+    .btn-default{
+        border: 1px solid red;
+    }
+    .placeholder_colored::-webkit-input-placeholder  {
+        color: red;
+        text-align: left;
+    } 
+    .sucesso{
+        width: 100%;
+        background-color: green;
+    }
+    .formulario{
+        margin: 50px;
+    }
+
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css" rel="stylesheet" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.11/jquery.mask.min.js"></script>
+<!--<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>-->
+
+
+
+<?php Pagina::fechar_head(); ?>
+<?php $objPagina->montar_menu_topo(); ?>
+
+
+
+<?= $sucesso ?>
+<div class="formulario">
+    <form method="POST">
+        <div class="form-row">  
+
+            <div class="col-md-12">
+                <label for="perfil">Perfil:</label>
+                    <?= $select_perfis ?>
+            </div>
+        </div>
+                <?php
+                if (!isset($_GET['valuePerfilSelected'])) {
+                    echo '<small style="color:red;"> Nenhum perfil foi selecionado</small>';
+                } else {
+                    ?> 
+
+
+            <div class="form-row" style="margin-top:10px;">
+                <div class="col-md-3 mb-3">
+                    <label for="label_nome">Digite o nome:</label>
+                    <input type="text" class="form-control" id="idNome" placeholder="Nome" 
+                           onblur="validaNome()" name="txtNome" required value="<?= $objPaciente->getNome() ?>">
+                    <div id ="feedback_nome"></div>
+
+                </div>
+                <div class="col-md-3 mb-9">
+                    <label for="label_nomeMae">Digite o nome da mãe:</label>
+                    <input type="text" class="form-control" id="idNomeMae" placeholder="Nome da mãe" 
+                           onblur="validaNomeMae()" name="txtNomeMae" required value="<?= $objPaciente->getNomeMae() ?>">
+                    <div id ="feedback_nomeMae"></div>
+                    <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsNomeMae" style="display:none" >
+
+                        <div class="form-row align-items-center" >
+                            <div class="col-auto my-1">
+                                <div class="custom-control custom-radio mb-3">
+                                    <input onclick="val_radio_obsNomeMae()"  name="obs"  type="radio"  class="custom-control-input" id="customControlValidation2" name="radio-stacked" >
+                                    <label class="custom-control-label" for="customControlValidation2">Não informado</label>
+                                </div>
+                            </div>
+
+                            <div class="col-auto my-1">
+                                <div class="custom-control custom-radio mb-3">
+                                    <input onchange="val_radio_obsNomeMae()"  name="obs" type="radio" class="custom-control-input" id="customControlValidation3" name="radio-stacked" >
+                                    <label class="custom-control-label" for="customControlValidation3">Outro</label>
+                                </div>
+                            </div>
+
+                            <div class="col-auto my-1">
+                                <div class="custom-control  mb-3">
+
+                                    <input style="height: 35px; margin-left: -25px;margin-top: -5px;" readonly  type="text" class="form-control" id="idObsNomeMae" placeholder="motivo"  
+                                           onblur="validaObsNomeMae()" name="txtObsNomeMae" required value="<?= $objPaciente->getObsNomeMae() ?>">
+                                    <div id ="feedback_obsNomeMae"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="label_dtNascimento">Digite a data de nascimento:</label>
+                    <input type="date" class="form-control" id="idDtNascimetno" placeholder="Data de nascimento"  
+                           onblur="validaDataNascimento()" name="dtDataNascimento"  max="<?php echo date('Y-m-d'); ?>" required value="<?= $objPaciente->getDataNascimento() ?>">
+                    <div id ="feedback_dtNascimento"></div>
+                </div>
+                
+                <div class="col-md-3 mb-4">
+                    <label for="sexoPaciente" >Sexo:</label>
+                    <?= $select_sexos ?>
+                    <div id ="feedback_sexo"></div>
+                
+                
+                <!--<div class="col-md-4 mb-4">-->
+                <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsSexo" style="margin-top:25px;" >
+
+                        <div class="form-row align-items-center" >
+                            <div class="col-auto my-1">
+                                <div class="custom-control custom-radio mb-3">
+                                    <input onclick="val_radio_obsSexo()"  name="obsSexo"  type="radio"  class="custom-control-input" id="customControlValidationSexo" name="radio-stacked2" >
+                                    <label class="custom-control-label" for="customControlValidationSexo">Não informado </label>
+                                </div>
+                            </div>
+
+                            <div class="col-auto my-1">
+                                <div class="custom-control custom-radio mb-3">
+                                    <input onchange="val_radio_obsSexo()"  name="obsSexo" type="radio" class="custom-control-input" id="customControlValidationSexo2" name="radio-stacked2" >
+                                    <label class="custom-control-label" for="customControlValidationSexo2">Outro</label>
+                                </div>
+                            </div>
+
+                            <div class="col-auto my-1">
+                                <div class="custom-control  mb-3">
+
+                                    <input style="height: 35px;margin-left: -25px;margin-top: -5px;" readonly  type="text" class="form-control" id="idObsSexo" placeholder="motivo"  
+                                           onblur="validaObsSexo()" name="txtObsSexo" required value="<?= $objPaciente->getObsNomeMae() ?>">
+                                    <div id ="feedback_obsNomeMae"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+            </div>  
+
+           <!-- <div class="form-row">  
+
+                <div class="col-md-1 mb-2">
+                    <label for="labelEstado" >Estado:</label>
+                     <?= $select_estados ?>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label for="labelCidade" >Cidade:</label>
+                    <?= $select_lugares ?>
+                </div> 
+
+                <div class="col-md-4 mb-4">
+                    <label for="sexoPaciente" >Sexo:</label>
+                    <?= $select_sexos ?>
+                    <div id ="feedback_sexo"></div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsSexo" style="margin-top:25px;" >
+
+                        <div class="form-row align-items-center" >
+                            <div class="col-auto my-1">
+                                <div class="custom-control custom-radio mb-3">
+                                    <input onclick="val_radio_obsSexo()"  name="obsSexo"  type="radio"  class="custom-control-input" id="customControlValidationSexo" name="radio-stacked2" >
+                                    <label class="custom-control-label" for="customControlValidationSexo">Não informado </label>
+                                </div>
+                            </div>
+
+                            <div class="col-auto my-1">
+                                <div class="custom-control custom-radio mb-3">
+                                    <input onchange="val_radio_obsSexo()"  name="obsSexo" type="radio" class="custom-control-input" id="customControlValidationSexo2" name="radio-stacked2" >
+                                    <label class="custom-control-label" for="customControlValidationSexo2">Outro</label>
+                                </div>
+                            </div>
+
+                            <div class="col-auto my-1">
+                                <div class="custom-control  mb-3">
+
+                                    <input style="height: 35px;margin-left: -25px;margin-top: -5px;" readonly  type="text" class="form-control" id="idObsSexo" placeholder="motivo"  
+                                           onblur="validaObsSexo()" name="txtObsSexo" required value="<?= $objPaciente->getObsNomeMae() ?>">
+                                    <div id ="feedback_obsNomeMae"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+            </div>-->
+
+
+            <div class="form-row">
+                <div class="col-md-4 mb-3">
+                    <label for="label_cpf">Digite o CPF:</label>
+                    <input type="text" class="form-control cep-mask" id="idCPF" placeholder="Ex.: 000.000.000-00" 
+                           onblur="valida_cpf()" name="numCPF" <?=$cpf_obrigatorio?> value="<?= $objPaciente->getCPF() ?>">
+                    <div id ="feedback_cpf"></div>
+
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="label_rg">Digite o RG:</label>
+                    <input type="number" class="form-control" id="idPaciente" placeholder="RG" 
+                           onblur="##" name="txtPaciente" required value="<?= $objPaciente->getRG() ?>">
+                    <div id ="feedback_rg"></div>
+
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="label_codGal">Digite o código Gal:</label>
+                    <input type="text" class="form-control" id="idPaciente" placeholder="Código GAL"  <?= $read_only ?>
+                           onblur="##" name="txtPaciente" required value="<?= $objPaciente->getCodGAL() ?>">
+                    <div id ="feedback_codGal"></div>
+
+                </div>
+
+            </div>  
+            <button class="btn btn-primary" type="submit" name="salvar_paciente">Salvar</button>
+        <?php } ?>
+    </form>
+
+
+
+</div>
+
+
+<script src="js/paciente.js"></script>
+<script src="js/fadeOut.js"></script>
+<script>
+     $(document).ready(function(){
+        $('idCPF').mask('000.000.000-00');
+        });
+
+
+</script>
+<script>
+                       
+
+                           function val_radio_obsNomeMae() {
+
+                               var radios = document.getElementsByName('obs');
+                               //var input_outro = document.getElementById('idObsNomeMae');
+                               for (var i = 0, length = radios.length; i < length; i++) {
+                                   if (radios[0].checked) {
+                                       // do whatever you want with the checked radio
+                                       //alert("desconhecido");
+                                       document.getElementById('idObsNomeMae').readOnly = true;
+                                       // only one radio can be logically checked, don't check the rest
+                                       break;
+                                   }
+                                   if (radios[1].checked) {
+                                       // do whatever you want with the checked radio
+                                       //alert("outro");
+                                       document.getElementById('idObsNomeMae').readOnly = false;
+                                       // only one radio can be logically checked, don't check the rest
+                                       break;
+                                   }
+                               }
+
+                           }
+                           
+                           
+                           function val_radio_obsSexo() {
+
+                               var radios = document.getElementsByName('obsSexo');
+                               //var input_outro = document.getElementById('idObsNomeMae');
+                               for (var i = 0, length = radios.length; i < length; i++) {
+                                   if (radios[0].checked) {
+                                       document.getElementById('idObsSexo').readOnly = true;
+                                       break;
+                                   }
+                                   if (radios[1].checked) {
+                                       document.getElementById('idObsSexo').readOnly = false;
+                                       break;
+                                   }
+                               }
+
+                           }
+
+                           
+                           
+                           function val_perfil() {
+                               $('.selectpicker').change(function (e) {
+                                   window.location.href = window.location.href+"&valuePerfilSelected=" + e.target.value;
+                               });
+                           }
+                           
+                           function val_sexo() {
+                               $('.selectpicker').change(function (e) {
+                                   if(e.target.value != 0){
+                                        /*alert("escolheu algo");
+                                        var x = document.getElementById("id_desaparecer_aparecerObsSexo");
+                                        if (x.style.display === "none") {
+                                            x.style.display = "block";
+                                        } else {
+                                            x.style.display = "none";
+                                        }*/
+                                   }
+                               });
+                           }
+                           
+                           
+                            function val_estados() {
+                             $('.selectpicker').change(function (e) {
+                                   if(e.target.value != 0){
+                                        /*alert("escolheu algo");
+                                        var x = document.getElementById("id_desaparecer_aparecerObsSexo");
+                                        if (x.style.display === "none") {
+                                            x.style.display = "block";
+                                        } else {
+                                            x.style.display = "none";
+                                        }*/
+                                   }
+                               });
+    
+                            }
+                            function val_lugares() {
+                               $('.selectpicker').change(function (e) {
+                                   if(e.target.value != 0){
+                                        /*alert("escolheu algo");
+                                        var x = document.getElementById("id_desaparecer_aparecerObsSexo");
+                                        if (x.style.display === "none") {
+                                            x.style.display = "block";
+                                        } else {
+                                            x.style.display = "none";
+                                        }*/
+                                   }
+                               });
+                           }
+                           
+                           
+</script>
+
+
+
+
+
+
+<?php
+$objPagina->mostrar_excecoes();
+$objPagina->fechar_corpo();
+?>
+
+
