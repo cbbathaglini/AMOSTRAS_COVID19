@@ -3,7 +3,7 @@
  *  Author: Carine Bertagnolli Bathaglini
  */
 
-require_once 'classes/excecao/Excecao.php';
+require_once 'classes/Excecao/Excecao.php';
 
 class Amostra{
 

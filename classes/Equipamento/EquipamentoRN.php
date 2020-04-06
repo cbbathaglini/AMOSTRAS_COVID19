@@ -4,7 +4,7 @@
  *  Classe das regras de negócio do equipamento
  */
 
-require_once 'classes/excecao/Excecao.php';
+require_once 'classes/Excecao/Excecao.php';
 require_once 'classes/Equipamento/EquipamentoBD.php';
 
 class EquipamentoRN{

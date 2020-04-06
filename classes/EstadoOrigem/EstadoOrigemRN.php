@@ -4,7 +4,7 @@
  *  Classe das regras de negócio do estado de origem do paciente
  */
 
-require_once 'classes/excecao/Excecao.php';
+require_once 'classes/Excecao/Excecao.php';
 require_once 'classes/EstadoOrigem/EstadoOrigemBD.php';
 
 class EstadoOrigemRN{

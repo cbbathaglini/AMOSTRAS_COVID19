@@ -224,6 +224,8 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                     <div id ="feedback_nome"></div>
 
                 </div>
+                
+                <!-- Nome da mãe -->
                 <div class="col-md-3 mb-9">
                     <label for="label_nomeMae">Digite o nome da mãe:</label>
                     <input type="text" class="form-control" id="idNomeMae" placeholder="Nome da mãe" 
@@ -261,6 +263,8 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
 
 
                 </div>
+                
+                <!-- Data de nascimento -->
                 <div class="col-md-3 mb-3">
                     <label for="label_dtNascimento">Digite a data de nascimento:</label>
                     <input type="date" class="form-control" id="idDataNascimento" placeholder="Data de nascimento"  
@@ -268,13 +272,12 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                     <div id ="feedback_dtNascimento"></div>
                 </div>
                 
+                <!-- Sexo -->
                 <div class="col-md-3 mb-4">
                     <label for="sexoPaciente" >Sexo:</label>
                     <?= $select_sexos ?>
                     <div id ="feedback_sexo"></div>
                 
-                
-                <!--<div class="col-md-4 mb-4">-->
                 <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsSexo" style="margin-top:25px;" >
 
                         <div class="form-row align-items-center" >
@@ -303,16 +306,17 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                             </div>
                         </div>
                     </div>
-                    </div>
+                 </div>
 
             </div>  
 
           
             <div class="form-row">
+                <!-- CPF -->
                 <div class="col-md-4 mb-3">
                     <label for="label_cpf">Digite o CPF:</label>
                     <input type="text" class="form-control cep-mask" id="idCPF" placeholder="Ex.: 000.000.000-00" 
-                           onblur="valida_cpf()" name="txtCPF" <?=$cpf_obrigatorio?> value="<?= $objPaciente->getCPF() ?>">
+                           onblur="validaCPF()" name="txtCPF" <?=$cpf_obrigatorio?> value="<?= $objPaciente->getCPF() ?>">
                     <div id ="feedback_cpf"></div>
                     
                     <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsCPF" style="margin-top:25px;" >

@@ -4,7 +4,7 @@
  *  Classe das regras de negócio do perfil do paciente
  */
 
-require_once 'classes/excecao/Excecao.php';
+require_once 'classes/Excecao/Excecao.php';
 require_once 'classes/PerfilPaciente/PerfilPacienteBD.php';
 
 class PerfilPacienteRN{

@@ -24,6 +24,7 @@ class PacienteRN{
         return $paciente->setNome($strNome);
     }
     
+    //NÃO CADASTRA PACIENTE COM MESMO NOME E MESMO NOME DE MÃE
     private function validarCadastro(Paciente $paciente,Excecao $objExcecao){
         
         $pacienteRN  = new PacienteRN();
@@ -45,7 +46,7 @@ class PacienteRN{
         }
         
         if($strNomeMae == '' && $paciente->getObsNomeMae() == ''){
-            $objExcecao->adicionar_validacao('Informe o nome da mãe ou justifique a ausência.',null);
+            $objExcecao->adicionar_validacao('Informe o nome da mãe ou justifique a ausência.','idNomeMae');
         }
         
         return $paciente->setNomeMae($strNomeMae);
@@ -131,7 +132,7 @@ class PacienteRN{
        
         
         if($paciente->getIdPerfilPaciente_fk() != 3){
-            if($strObsCPF == ''){
+            if($strObsCPF == '' && $paciente->getCPF() == '' ){
                 $objExcecao->adicionar_validacao('Insira o CPF do paciente.','idObsCPF');
             }
         }
