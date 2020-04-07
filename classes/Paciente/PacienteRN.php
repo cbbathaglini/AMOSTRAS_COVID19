@@ -70,20 +70,22 @@ class PacienteRN{
     private function validarCPF(Paciente $paciente,Excecao $objExcecao){
         $strCPF = trim($paciente->getCPF());     
        
+        
+        if (strlen($strCPF) != 11) {
+                $objExcecao->adicionar_validacao('O CPF do paciente não possui  11 caracteres.','idCPF');
+        }
+            
         if($paciente->getIdPerfilPaciente_fk() != 3){
             if($strCPF == ''){
                 $objExcecao->adicionar_validacao('Insira o CPF do paciente.','idCPF');
             }
-        }
-                    
+        }                    
             // Extrai somente os números
             
             $strCPF = preg_replace( '/[^0-9]/is', '', $strCPF );
             
             // Verifica se foi informado todos os digitos corretamente
-            if (strlen($strCPF) > 11) {
-                $objExcecao->adicionar_validacao('O CPF do paciente possui mais que 11 caracteres.','idCPF');
-            }
+            
 
             // Verifica se foi informada uma sequência de digitos repetidos. Ex: 111.111.111-11
             if (preg_match('/(\d)\1{10}/', $strCPF)) {
@@ -108,10 +110,11 @@ class PacienteRN{
     private function validarRG(Paciente $paciente,Excecao $objExcecao){
         $strRG = trim($paciente->getRG());
         
-       
-        if (strlen($strRG) > 10) {
-            $objExcecao->adicionar_validacao('O CPF do paciente possui mais que 10 caracteres.','idRG');
-        }
+       if(strlen($strRG) > 0){
+            if (strlen($strRG) != 10) {
+                $objExcecao->adicionar_validacao('O RG do paciente não possui 10 caracteres.','idRG');
+            }
+       }
                            
         return $paciente->setRG($strRG);
     }

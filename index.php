@@ -76,6 +76,9 @@ and open the template in the editor.
             <li>---------------- Paciente</li>
             <li><a href="controlador.php?action=cadastrar_paciente">Cadastrar</a></li>
             <li><a href="controlador.php?action=listar_paciente">Listar</a></li>
+            <li>---------------- Amostra</li>
+            <li><a href="controlador.php?action=cadastrar_amostra">Cadastrar</a></li>
+            <li><a href="controlador.php?action=listar_amostra">Listar</a></li>
            
             
             

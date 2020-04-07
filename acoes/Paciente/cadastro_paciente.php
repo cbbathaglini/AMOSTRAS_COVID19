@@ -40,7 +40,7 @@ try {
         montar_select_perfilPaciente($select_perfis, $objPerfilPaciente, $objPerfilPacienteRN, $objPaciente);
         $objPerfilPaciente->setIdPerfilPaciente($_GET['valuePerfilSelected']);
         $objPerfilPaciente = $objPerfilPacienteRN->consultar($objPerfilPaciente);
-        echo $objPerfilPaciente->getPerfil();
+        //echo $objPerfilPaciente->getPerfil();
         if ($objPerfilPaciente->getPerfil() != 'paciente sus') { //apenas pacientes sus tem acesso ao cod Gal
             $read_only = ' readonly ';
             //cpf obrigatório
@@ -109,13 +109,62 @@ try {
             if (!isset($_POST['salvar_paciente'])) { //enquanto não enviou o formulário com as alterações
                 $objPaciente->setIdPaciente($_GET['idPaciente']);
                 $objPaciente = $objPacienteRN->consultar($objPaciente);
+                montar_select_perfilPaciente($select_perfis, $objPerfilPaciente, $objPerfilPacienteRN, $objPaciente);
+                if($objPaciente->getIdPerfilPaciente_fk() != 0){
+                    montar_select_sexo($select_sexos, $objSexoPaciente, $objSexoPacienteRN, $objPaciente) ;
+                }
+                $objPerfilPaciente->setIdPerfilPaciente($objPaciente->getIdPerfilPaciente_fk());
+                $objPerfilPaciente= $objPerfilPacienteRN->consultar($objPerfilPaciente);
+                if ($objPerfilPaciente->getPerfil() != 'paciente sus') { //apenas pacientes sus tem acesso ao cod Gal
+                    $read_only = ' readonly ';
+                }
+                
             }
 
             if (isset($_POST['salvar_paciente'])) { //se enviou o formulário com as alterações
                 $objPaciente->setIdPaciente($_GET['idPaciente']);
-                $objPaciente->setPaciente(mb_strtolower($_POST['txtPaciente'], 'utf-8'));
+                                
+                if(isset($_GET['valuePerfilSelected'])) $objPaciente->setIdPerfilPaciente_fk($_GET['valuePerfilSelected']);
+                else{
+                    $objPaciente = $objPacienteRN->consultar($objPaciente);
+                    $objPaciente->setIdPerfilPaciente_fk($objPaciente->getIdPerfilPaciente_fk());
+                }
+                
+                if ($objPerfilPaciente->getPerfil() != 'paciente sus') {
+                    if(!isset($_POST['txtCPF'])){
+                        $objExcecao->adicionar_validacao('Insira o CPF do paciente.','idCPF');
+                    }
+                }
+                $objPaciente->setCPF($_POST['txtCPF']);
+                if ($objPerfilPaciente->getPerfil() == 'paciente sus') {
+                    if(!isset($_POST['txtCodGAL'])){
+                        $objExcecao->adicionar_validacao('Insira o código GAL do paciente.','idCodGAL');
+                    }
+                    $objPaciente->setCodGAL($_POST['idCodGAL']);
+                }
+                
+                if(isset($_POST['txtRG'])){
+                    $objPaciente->setRG($_POST['txtRG']);
+                }
+                                
+                $objPaciente->setIdSexo_fk($_POST['sel_sexo']);
+                if($_POST['txtObsSexo'] == null && $_POST['sel_sexo'] == null){
+                    $objPaciente->setObsSexo('Não informado');
+                }
+                
+                $objPaciente->setNomeMae($_POST['txtNomeMae']);
+                if($_POST['txtObsNomeMae'] == null && $_POST['txtNomeMae'] == null){
+                    $objPaciente->setObsNomeMae('Não informado');
+                }
+                
+                $objPaciente->setDataNascimento($_POST['dtDataNascimento']);
+                $objPaciente->setNome($_POST['txtNome']);
+                
+               
                 $objPacienteRN->alterar($objPaciente);
-                $sucesso = '<div id="sucesso_bd" class="sucesso">Alterado com sucesso</div>';
+                header('Location: controlador.php?action=listar_paciente');
+                
+                //$sucesso = '<div id="sucesso_bd" class="sucesso">Alterado com sucesso</div>';
             }
 
 
@@ -151,10 +200,11 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
     $selected = '';
     $arr_sexos= $objSexoPacienteRN->listar($objSexoPaciente);
        
-    $select_sexos = '<select  onfocus="this.selectedIndex=0;" onchange="validaSexo()" class="form-control selectpicker" id="select-country idSexo" data-live-search="true" name="sel_sexo">'
+    $select_sexos = '<select  onfocus="this.selectedIndex=0;" onchange="val_sexo()" class="form-control selectpicker" id="select-country idSexo" data-live-search="true" name="sel_sexo">'
             . '<option data-tokens=""></option>';
 
     foreach ($arr_sexos as $sexo) {
+         $selected = '';
         if ($sexo->getIdSexo() == $objPaciente->getIdSexo_fk()) {
             $selected = 'selected';
         }
@@ -210,14 +260,15 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
             </div>
         </div>
                 <?php
-                if (!isset($_GET['valuePerfilSelected'])) {
+                if (!isset($_GET['valuePerfilSelected']) && !isset($_GET['idPaciente'])) {
                     echo '<small style="color:red;"> Nenhum perfil foi selecionado</small>';
                 } else {
                     ?> 
 
 
             <div class="form-row" style="margin-top:10px;">
-                <div class="col-md-3 mb-3">
+                
+                <div class="col-md-4 mb-3">
                     <label for="label_nome">Digite o nome:</label>
                     <input type="text" class="form-control" id="idNome" placeholder="Nome" 
                            onblur="validaNome()" name="txtNome" required value="<?= $objPaciente->getNome() ?>">
@@ -226,7 +277,7 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                 </div>
                 
                 <!-- Nome da mãe -->
-                <div class="col-md-3 mb-9">
+                <div class="col-md-4 mb-9">
                     <label for="label_nomeMae">Digite o nome da mãe:</label>
                     <input type="text" class="form-control" id="idNomeMae" placeholder="Nome da mãe" 
                            onblur="validaNomeMae()" name="txtNomeMae" required value="<?= $objPaciente->getNomeMae() ?>">
@@ -265,14 +316,20 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                 </div>
                 
                 <!-- Data de nascimento -->
-                <div class="col-md-3 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="label_dtNascimento">Digite a data de nascimento:</label>
                     <input type="date" class="form-control" id="idDataNascimento" placeholder="Data de nascimento"  
                            onblur="validaDataNascimento()" name="dtDataNascimento"  max="<?php echo date('Y-m-d'); ?>" required value="<?= $objPaciente->getDataNascimento() ?>">
                     <div id ="feedback_dtNascimento"></div>
                 </div>
                 
-                <!-- Sexo -->
+               
+
+            </div>  
+
+          
+            <div class="form-row">
+                 <!-- Sexo -->
                 <div class="col-md-3 mb-4">
                     <label for="sexoPaciente" >Sexo:</label>
                     <?= $select_sexos ?>
@@ -281,14 +338,14 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                 <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsSexo" style="margin-top:25px;" >
 
                         <div class="form-row align-items-center" >
-                            <div class="col-auto my-1">
+                            <div class="col-auto mb-1">
                                 <div class="custom-control custom-radio mb-3">
                                     <input onclick="val_radio_obsSexo()"  name="obsSexo" value="naoInformado" type="radio"  class="custom-control-input" id="customControlValidationSexo" name="radio-stacked2" >
                                     <label class="custom-control-label" for="customControlValidationSexo">Não informado </label>
                                 </div>
                             </div>
 
-                            <div class="col-auto my-1">
+                            <div class="col-auto mb-1">
                                 <div class="custom-control custom-radio mb-3">
                                     <input onchange="val_radio_obsSexo()"  name="obsSexo" value="outro" type="radio" class="custom-control-input" id="customControlValidationSexo2" name="radio-stacked2" >
                                     <label class="custom-control-label" for="customControlValidationSexo2">Outro</label>
@@ -296,9 +353,9 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                             </div>
 
                             <div class="col-auto my-1">
-                                <div class="custom-control  mb-3">
+                                <div class="custom-control  mb-2">
 
-                                    <input style="height: 35px;margin-left: -25px;margin-top: -5px;" readonly  type="text" class="form-control" id="idObsSexo" placeholder="motivo"  
+                                    <input style="height: 35px;margin-left: -25px;margin-top: -15px;" readonly  type="text" class="form-control" id="idObsSexo" placeholder="motivo"  
                                            onblur="validaObsSexo()" name="txtObsSexo" required value="<?= $objPaciente->getObsSexo() ?>">
                                     <div id ="feedback_obsNomeMae"></div>
 
@@ -307,19 +364,23 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                         </div>
                     </div>
                  </div>
-
-            </div>  
-
-          
-            <div class="form-row">
                 <!-- CPF -->
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-4">
+                    <?php 
+                    $validaCPF = '';
+                    if($cpf_obrigatorio == ''){ 
+                        $validaCPF = 'validaCPFSUS()';
+                    }else{
+                        $validaCPF = 'validaCPF()';
+                    }
+                    ?>
                     <label for="label_cpf">Digite o CPF:</label>
                     <input type="text" class="form-control cep-mask" id="idCPF" placeholder="Ex.: 000.000.000-00" 
-                           onblur="validaCPF()" name="txtCPF" <?=$cpf_obrigatorio?> value="<?= $objPaciente->getCPF() ?>">
+                           onblur="<?=$validaCPF ?>" name="txtCPF" <?=$cpf_obrigatorio?> value="<?= $objPaciente->getCPF() ?>">
                     <div id ="feedback_cpf"></div>
                     
-                    <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsCPF" style="margin-top:25px;" >
+                    <?php if($validaCPF == 'validaCPFSUS()'){ ?>
+                    <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsCPF" style="margin-top:25px; display:none;" >
 
                         <div class="form-row align-items-center" >
                             <div class="col-auto my-1">
@@ -341,7 +402,7 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                             <div class="col-auto my-1">
                                 <div class="custom-control  mb-3">
 
-                                    <input style="height: 35px;margin-left: -25px;margin-top: -5px;" readonly  
+                                    <input style="height: 35px;margin-left: -25px;margin-top: -20px;" readonly  
                                            type="text" class="form-control" id="idObsCPF" placeholder="motivo"  
                                            onblur="validaObsCPF()" name="txtObsCPF" required value="<?= $objPaciente->getObsCPF() ?>">
                                     <div id ="feedback_obsCPF"></div>
@@ -350,17 +411,19 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                             </div>
                         </div>
                     </div>
-                    
+                    <?php } ?>
                     
                     
                     
                 </div>
-                <div class="col-md-4 mb-3">
+                
+                <!-- RG -->
+                <div class="col-md-3 mb-3">
                     <label for="label_rg">Digite o RG:</label>
                     <input type="txt" class="form-control" id="idRG" placeholder="RG" 
-                           onblur="##" name="txtRG" value="<?= $objPaciente->getRG() ?>">
+                           onblur="validaRG()" name="txtRG" value="<?= $objPaciente->getRG() ?>">
                     <div id ="feedback_rg"></div>
-                    <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsRG" style="margin-top:25px;" >
+                    <div class="desaparecer_aparecer" id="id_desaparecer_aparecerObsRG" style="margin-top:25px; display: none;" >
 
                         <div class="form-row align-items-center" >
                             <div class="col-auto my-1">
@@ -394,10 +457,12 @@ function montar_select_sexo(&$select_sexos, $objSexoPaciente, $objSexoPacienteRN
                     
 
                 </div>
-                <div class="col-md-4 mb-3">
+                
+                <!-- CÓDIGO GAL -->
+                <div class="col-md-3 mb-3">
                     <label for="label_codGal">Digite o código Gal:</label>
                     <input type="text" class="form-control" id="idCodGAL" placeholder="000 0000 0000 0000" data-mask="000 0000 0000 0000"  <?= $read_only ?>
-                           onblur="##" name="txtCodGAL" required value="<?= $objPaciente->getCodGAL() ?>">
+                           onblur="validaCodGAL()" name="txtCodGAL" required value="<?= $objPaciente->getCodGAL() ?>">
                     <div id ="feedback_codGal"></div>
 
                 </div>
@@ -422,6 +487,18 @@ function val() {
         //alert(e.target.value);
         //document.getElementById("class1").innerHTML = e.target.value ;
         window.location.href = "controlador.php?action=cadastrar_paciente&valuePerfilSelected=" + e.target.value; 
+        /*$.post("cadastro_paciente.php", {perfilSelecionado:e.target.value},function(data){
+            alert("data sent and received: "+data);
+        });*/
+
+    });    
+ }
+ 
+ function val_sexo() {
+    $('.selectpicker').change(function (e) {
+        alert(e.target.value);
+        //document.getElementById("class1").innerHTML = e.target.value ;
+        
         /*$.post("cadastro_paciente.php", {perfilSelecionado:e.target.value},function(data){
             alert("data sent and received: "+data);
         });*/

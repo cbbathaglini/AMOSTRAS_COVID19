@@ -38,8 +38,7 @@ class PacienteBD{
     
     public function alterar(Paciente $objPaciente, Banco $objBanco) {
         try{
-            
-            
+                      
             $UPDATE = 'UPDATE tb_paciente SET '
                     . ' idSexo_fk = ?,'
                     . ' idPerfilPaciente_fk = ?,'
@@ -52,7 +51,7 @@ class PacienteBD{
                     . ' obsSexo = ?,'
                     . ' codGAL = ?,'
                     . ' dataNascimento = ?,'
-                    . ' obsNomeMae = ?,'
+                    . ' obsNomeMae = ?'
                 . '  where idPaciente = ?';
         
                 
@@ -62,13 +61,14 @@ class PacienteBD{
             $arrayBind[] = array('s',$objPaciente->getNome());
             $arrayBind[] = array('s',$objPaciente->getNomeMae());
             $arrayBind[] = array('s',$objPaciente->getCPF());
-            $arrayBind[] = array('i',$objPaciente->getRG());
+            $arrayBind[] = array('s',$objPaciente->getRG());
             $arrayBind[] = array('s',$objPaciente->getObsCPF());
             $arrayBind[] = array('s',$objPaciente->getObsRG());
             $arrayBind[] = array('s',$objPaciente->getObsSexo());
             $arrayBind[] = array('s',$objPaciente->getCodGAL());
             $arrayBind[] = array('s',$objPaciente->getDataNascimento());
             $arrayBind[] = array('s',$objPaciente->getObsNomeMae());
+            
             $arrayBind[] = array('i',$objPaciente->getIdPaciente());
 
             $objBanco->executarSQL($UPDATE,$arrayBind);

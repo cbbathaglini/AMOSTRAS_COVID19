@@ -34,7 +34,6 @@ function validaCPF(){
     var div_feedback = document.getElementById("feedback_cpf");
     var x = document.getElementById("id_desaparecer_aparecerObsCPF");
     
-    
     if(strTipo.value.length == 0 || strTipo.value.length > 11 ){ // não digitou nada
         strTipo.classList.add("is-invalid");
         if(strTipo.classList.contains("is-valid")) strTipo.classList.remove("is-valid");
@@ -42,12 +41,10 @@ function validaCPF(){
             div_feedback.classList.remove("valid-feedback");
         div_feedback.classList.add("invalid-feedback");
         if(strTipo.value.length == 0 ){
-            div_feedback.innerHTML = " Informe um motivo. ";
+            div_feedback.innerHTML = " Informe o CPF. ";
             if (x.style.display === "none") {
                 x.style.display = "block";
-            } else {
-                x.style.display = "none";
-            }
+            } 
         }
         if(strTipo.value.length > 11 ) div_feedback.innerHTML = " Digite o CPF com 11 caracteres. ";
     }
@@ -62,7 +59,6 @@ function validaCPF(){
     }
     
 }
-
 
 function validaObsCPF(){
     
@@ -89,11 +85,71 @@ function validaObsCPF(){
     
 }
 
-function validaObsRG(){
+function validaCPF(){
+    
+    var strTipo = document.getElementById("idCPF");
+    var div_feedback = document.getElementById("feedback_cpf");
+    var x = document.getElementById("id_desaparecer_aparecerObsCPF");
+    
+    if(strTipo.value.length == 0 || strTipo.value.length > 11 ){ // não digitou nada
+        strTipo.classList.add("is-invalid");
+        if(strTipo.classList.contains("is-valid")) strTipo.classList.remove("is-valid");
+        if(div_feedback.classList.contains("valid-feedback"))
+            div_feedback.classList.remove("valid-feedback");
+        div_feedback.classList.add("invalid-feedback");
+        if(strTipo.value.length == 0 ){
+            div_feedback.innerHTML = " Informe o CPF. ";
+        }
+        if(strTipo.value.length > 11 ) div_feedback.innerHTML = " Digite o CPF com 11 caracteres. ";
+    }
+    else if(strTipo.value.length > 0){
+        x.style.display = "none";
+         strTipo.classList.add("is-valid");
+        if(strTipo.classList.contains("is-invalid")) strTipo.classList.remove("is-invalid");
+        if(div_feedback.classList.contains("invalid-feedback"))
+            div_feedback.classList.remove("invalid-feedback");
+        div_feedback.classList.add("valid-feedback");
+        div_feedback.innerHTML = " Tudo certo. ";
+    }
+    
+}
+function validaCPFSUS(){
+    
+    var strTipo = document.getElementById("idCPF");
+    var div_feedback = document.getElementById("feedback_cpf");
+    var x = document.getElementById("id_desaparecer_aparecerObsCPF");
+    
+    if(strTipo.value.length == 0 || strTipo.value.length > 11 ){ // não digitou nada
+        strTipo.classList.add("is-invalid");
+        if(strTipo.classList.contains("is-valid")) strTipo.classList.remove("is-valid");
+        if(div_feedback.classList.contains("valid-feedback"))
+            div_feedback.classList.remove("valid-feedback");
+        div_feedback.classList.add("invalid-feedback");
+        if(strTipo.value.length == 0 ){
+            div_feedback.innerHTML = " Informe um motivo. ";
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } 
+        }
+        if(strTipo.value.length > 11 ) div_feedback.innerHTML = " Digite o CPF com 11 caracteres. ";
+    }
+    else if(strTipo.value.length > 0){
+        x.style.display = "none";
+         strTipo.classList.add("is-valid");
+        if(strTipo.classList.contains("is-invalid")) strTipo.classList.remove("is-invalid");
+        if(div_feedback.classList.contains("invalid-feedback"))
+            div_feedback.classList.remove("invalid-feedback");
+        div_feedback.classList.add("valid-feedback");
+        div_feedback.innerHTML = " Tudo certo. ";
+    }
+    
+}
+
+function validaRG(){
         
-    var strTipo = document.getElementById("idObsRG");
+    var strTipo = document.getElementById("idRG");
     //var tipoAmostra = '<?=$objTipoAmostra->getTipo() ?>';
-    var div_feedback = document.getElementById("feedback_obsRG");
+    var div_feedback = document.getElementById("feedback_rg");
     var x = document.getElementById("id_desaparecer_aparecerObsRG");
     
     if(strTipo.value.length == 0 || strTipo.value.length > 10 ){ // não digitou nada
@@ -106,9 +162,7 @@ function validaObsRG(){
             div_feedback.innerHTML = " Informe um motivo. ";
             if (x.style.display === "none") {
                 x.style.display = "block";
-            } else {
-                x.style.display = "none";
-            }
+            } 
         }
         if(strTipo.value.length > 10 ) div_feedback.innerHTML = " Digite o RG com 10 caracteres. ";
     }
@@ -167,7 +221,7 @@ function validaNomeMae(){
 
 function validaDataNascimento(){
      
-    var strTipo = document.getElementById("idDtNascimetno");
+    var strTipo = document.getElementById("idDataNascimento");
     //var tipoAmostra = '<?=$objTipoAmostra->getTipo() ?>';
     var div_feedback = document.getElementById("feedback_dtNascimento");
     
@@ -229,4 +283,29 @@ function validaSexo(){
     
 }
 
-
+function validaCodGAL(){
+     
+    var strTipo = document.getElementById("idCodGAL");
+    //var tipoAmostra = '<?=$objTipoAmostra->getTipo() ?>';
+    var div_feedback = document.getElementById("feedback_codGal");
+    
+    
+    if(strTipo.value.length == 0 || strTipo.value.length != 15){ // não digitou nada
+        strTipo.classList.add("is-invalid");
+        if(strTipo.classList.contains("is-valid")) strTipo.classList.remove("is-valid");
+        if(div_feedback.classList.contains("valid-feedback"))
+            div_feedback.classList.remove("valid-feedback");
+        div_feedback.classList.add("invalid-feedback");
+        if(strTipo.value.length == 0) div_feedback.innerHTML = " Informe o código GAL. ";
+        if(strTipo.value.length != 15)div_feedback.innerHTML = " O código GAL deve possuir 15 caracteres. ";
+    }
+    else if(strTipo.value.length > 0){
+         strTipo.classList.add("is-valid");
+        if(strTipo.classList.contains("is-invalid")) strTipo.classList.remove("is-invalid");
+        if(div_feedback.classList.contains("invalid-feedback"))
+            div_feedback.classList.remove("invalid-feedback");
+        div_feedback.classList.add("valid-feedback");
+        div_feedback.innerHTML = " Tudo certo. ";
+    }
+    
+}
